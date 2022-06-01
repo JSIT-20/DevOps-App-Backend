@@ -1,26 +1,31 @@
 const axios = require('axios');
 const dotenv = require('dotenv');
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 
 dotenv.config();
+app.use(bodyParser.json());
 
 const APP_ID = process.env.APP_ID;
 const API_KEY = process.env.API_KEY;
 
+var savedTrips = [{"name": "Trim to Blair","start_stop": "3029", "end_stop": "3027"}]; //Array of trips, composed of start and end stops
+
 app.get('/getroutes', async (req, res) =>{
+	var result;
 	try{
 		var startStop = req.query.start;
 		var endStop = req.query.end;
 		var startData = await loadNextTripsForStop(startStop);
 		var endData = await loadAllRoutesForStop(endStop);
 		var commonRoutes = findCommonRoutes(startData, endData);
-		var result = {"Status": "200", "Routes": commonRoutes}
+		result = {"Status": "200", "Routes": commonRoutes}
 	}
 	catch(error){
 		console.log("Error occured in API module")
 		console.log(error)
-		var result = {"Status": "500"}
+		result = {"Status": "500"}
 	}
 
 	res.json(result);
@@ -28,9 +33,9 @@ app.get('/getroutes', async (req, res) =>{
 });
 
 app.get('/validatestop', async (req, res) =>{
+	var result;
 	try{
 		var stopQuery = req.query.stop;
-		var result;
 		var stop = await loadAllRoutesForStop(stopQuery);
 		if(stop.data.GetRouteSummaryForStopResult.Error != ""){
 			result = {"Status": "500"};
@@ -38,6 +43,47 @@ app.get('/validatestop', async (req, res) =>{
 		else{
 			result = {"Status": "200"};
 		}
+	}
+	catch(error){
+		console.log(error);
+		result = {"Status": "500"}
+	}
+	res.json(result);
+});
+
+app.get('/savedtrips', (req, res) =>{
+	var result;
+	try{
+		result = {"Status": "200", "Trips": savedTrips}
+	}
+	catch(error){
+		console.log(error);
+		result = {"Status": "500"}
+	}
+	res.json(result);
+
+});
+
+app.post('/savedtrips', (req, res) =>{
+	var result;
+	try{
+		savedTrips.push({"name": req.body.name, "start_stop": req.body.start_stop, "end_stop": req.body.end_stop});
+		result = {"Status": "200", "Trips": savedTrips}
+	}
+	catch(error){
+		console.log(error);
+		result = {"Status": "500"}
+	}
+	console.log(savedTrips);
+	console.log(req.body);
+	res.json(result);
+});
+
+app.delete('/savedtrips/:id', (req, res) =>{
+	var result;
+	try{
+		savedTrips.splice(req.params.id, 1);
+		result = {"Status": "200", "Trips": savedTrips}
 	}
 	catch(error){
 		console.log(error);
