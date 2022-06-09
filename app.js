@@ -2,6 +2,8 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
+const swaggerUI = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 const app = express();
 
 dotenv.config();
@@ -10,7 +12,28 @@ app.use(bodyParser.json());
 const APP_ID = process.env.APP_ID;
 const API_KEY = process.env.API_KEY;
 
+const options = {
+	definition: {
+		openapi: "3.0.0",
+		info: {
+			title: "Travel Planner API",
+			version: "1.0.0",
+			description: "API for travel planner"
+		},
+		servers: [
+			{
+				url: "http:/localhost:8081"
+			}
+		]
+	},
+	apis: ["/getroutes"]
+}
+
+const specs = swaggerJsDoc(options);
+
 var savedTrips = [{"name": "Trim to Blair","start_stop": "3029", "end_stop": "3027"}]; //Array of trips, composed of start and end stops
+
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 app.get('/getroutes', async (req, res) =>{
 	var result;
@@ -111,6 +134,7 @@ const loadNextTripsForStop = async (stopNumber) => {
 const loadAllRoutesForStop = async (stopNumber) => {
 	try{
 		var url = "https://api.octranspo1.com/v2.0/GetRouteSummaryForStop?appID=" + APP_ID + "&apiKey=" + API_KEY + "&stopNo=" + stopNumber + "&format=JSON";
+		console.log(url);
 		const response = await axios.get(url);
 		return response;
 	}
