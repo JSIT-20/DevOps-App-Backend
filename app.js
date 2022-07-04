@@ -33,9 +33,39 @@ const specs = swaggerJsDoc(options);
 
 var savedTrips = [{"name": "Trim to Blair","start_stop": "3029", "end_stop": "3027"}]; //Array of trips, composed of start and end stops
 
+/**
+@swagger
+components:
+	schemas:
+		Route:
+			type: object
+			properties:
+				trips:
+					type: string
+
+
+**/
+
+
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
-app.get('/getroutes', async (req, res) =>{
+/**
+@swagger
+/getroutes
+	get:
+		summary: Returns next three trips for bus routes that go through both start and end stop
+		responses:
+			200:
+				description: List of Routes
+				content:
+					application/json:
+						schema:
+							type:array
+							items:
+								$ref: '#/components/schemas/Route'
+**/
+
+app.get('/api/getroutes', async (req, res) =>{
 	var result;
 	try{
 		var startStop = req.query.start;
@@ -55,7 +85,7 @@ app.get('/getroutes', async (req, res) =>{
 
 });
 
-app.get('/validatestop', async (req, res) =>{
+app.get('/api/validatestop', async (req, res) =>{
 	var result;
 	try{
 		var stopQuery = req.query.stop;
@@ -74,7 +104,7 @@ app.get('/validatestop', async (req, res) =>{
 	res.json(result);
 });
 
-app.get('/savedtrips', (req, res) =>{
+app.get('/api/savedtrips', (req, res) =>{
 	var result;
 	try{
 		result = {"Status": "200", "Trips": savedTrips}
@@ -87,7 +117,7 @@ app.get('/savedtrips', (req, res) =>{
 
 });
 
-app.post('/savedtrips', (req, res) =>{
+app.post('/api/savedtrips', (req, res) =>{
 	var result;
 	try{
 		savedTrips.push({"name": req.body.name, "start_stop": req.body.start_stop, "end_stop": req.body.end_stop});
@@ -102,7 +132,7 @@ app.post('/savedtrips', (req, res) =>{
 	res.json(result);
 });
 
-app.delete('/savedtrips/:id', (req, res) =>{
+app.delete('/api/savedtrips/:id', (req, res) =>{
 	var result;
 	try{
 		savedTrips.splice(req.params.id, 1);
